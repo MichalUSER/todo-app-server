@@ -6,11 +6,14 @@ import (
 	"fmt"
 )
 
+//type Todo struct {
+//	title       string `json:"title"`
+//	description string `json:"description"`
+//	completed   bool   `json:"completed"`
+//	height      int    `json:"height"`
+//}
 type Todo struct {
-	title       string `json:"title"`
-	description string `json:"description"`
-	completed   bool   `json:"completed"`
-	height      int    `json:"height"`
+	name string `json:"name"`
 }
 
 var db = make(map[string]Todo)
@@ -20,9 +23,10 @@ func main() {
 
 	r.GET("/todos/:name", func(c *gin.Context) {
 		user := c.Params.ByName("name")
-		todos, ok := db[user]
+		todo, ok := db[user]
+		fmt.Println(todo)
 		if ok {
-			c.JSON(200, gin.H{"user": user, "todos": todos})
+			c.JSON(200, gin.H{"user": user, "todo": todo})
 		} else {
 			c.JSON(200, gin.H{"user": user, "status": "no value"})
 		}
@@ -31,13 +35,14 @@ func main() {
 	r.POST("/add/:name", func(c *gin.Context) {
 		user := c.Params.ByName("name")
 		var todo Todo
-		if c.BindJSON(&todo) == nil {
-			fmt.Println(todo)
+		if err := c.BindJSON(&todo); err != nil {
+			c.JSON(200, gin.H{"status": err.Error()})
+		} else {
 			db[user] = todo
 			c.JSON(200, gin.H{"status": "ok"})
-		} else {
-			c.JSON(200, gin.H{"status": "error"})
 		}
+
+		return
 	})
 
 	//r.Use(cors.Default())
